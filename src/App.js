@@ -16,23 +16,23 @@ export default function App() {
   const [chat, setChat] = useState([]);
   const [typingUser, setTypingUser] = useState("");
 
-  // ================= CONNECT =================
+  // connect
   useEffect(() => {
     socket.on("connect", () => {
       console.log("CONNECTED:", socket.id);
     });
 
-    // 📌 receive message
+    // receive message
     socket.on("receive_message", (data) => {
       setChat((prev) => [...prev, data]);
     });
 
-    // 📌 receive file
+    //  receive file
     socket.on("receive_file", (data) => {
       setChat((prev) => [...prev, data]);
     });
 
-    // 📌 load history (IMPORTANT FOR LATE JOIN)
+    // load history (IMPORTANT FOR LATE JOIN)
     socket.on("load_history", (history) => {
       setChat(history);
     });
@@ -49,7 +49,7 @@ export default function App() {
     return () => socket.off();
   }, []);
 
-  // ================= JOIN ROOM =================
+  // join room
   const joinRoom = () => {
     if (!username || !room) return;
 
@@ -57,7 +57,7 @@ export default function App() {
     setJoined(true);
   };
 
-  // ================= SEND MESSAGE =================
+  // send msg
   const sendMessage = () => {
     if (!message.trim()) return;
 
@@ -73,7 +73,7 @@ export default function App() {
     setMessage("");
   };
 
-  // ================= FILE SEND =================
+  // send file
   const handleFile = (e) => {
     const file = e.target.files[0];
     if (!file) return;
