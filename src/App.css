@@ -12,7 +12,7 @@ body {
   overflow-x: hidden;
 }
 
-/* 🌟 LANDING PAGE (SAME) */
+/* LANDING PAGE (SAME) */
 .landing {
   height: 100vh;
   display: flex;
@@ -59,7 +59,7 @@ body {
   box-shadow: 0 10px 30px rgba(0,0,0,0.4);
 }
 
-/* 🟡 JOIN PAGE (UNCHANGED STRUCTURE) */
+/*  JOIN PAGE (UNCHANGED STRUCTURE) */
 .join-page {
   height: 100vh;
   display: flex;
@@ -67,7 +67,7 @@ body {
   align-items: center;
 }
 
-/* ⭐ JOIN CARD (IMPROVED ONLY VISUAL) */
+/* JOIN CARD (IMPROVED ONLY VISUAL) */
 .join-card {
   background: rgba(255,255,255,0.08);
   backdrop-filter: blur(18px);
@@ -96,7 +96,7 @@ input:focus {
   box-shadow: 0 0 10px #6366f1;
 }
 
-/* 🚀 SEND / JOIN BUTTON (IMPROVED ONLY) */
+/* SEND / JOIN BUTTON (IMPROVED ONLY) */
 button {
   width: 100%;
   padding: 12px;
@@ -142,7 +142,7 @@ button:hover::after {
   left: 120%;
 }
 
-/* 💬 CHAT PAGE (SAME) */
+/*  CHAT PAGE (SAME) */
 .chat-page {
   padding: 20px;
   text-align: center;
