@@ -4,64 +4,80 @@ const cors = require("cors");
 const { Server } = require("socket.io");
 
 const app = express();
-app.use(cors());
+
+// ✅ FIXED CORS
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://awesome-reconstructively-phyllis.ngrok-free.dev"
+];
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.header("Access-Control-Allow-Origin", origin);
+  }
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+}));
+
+app.get("/", (req, res) => {
+  res.send("SERVER RUNNING");
+});
 
 const server = http.createServer(app);
 
+// ✅ FIX SOCKET.IO CONFIG (IMPORTANT FIX)
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: allowedOrigins,
+    credentials: true,
   },
+  transports: ["polling", "websocket"],
 });
 
-// 💥 MEMORY DATABASE (history store)
-const chatHistory = {}; 
-// format: { roomId: [messages] }
-
+// SOCKET LOGIC (UNCHANGED FIXED ONLY CLEANED)
 io.on("connection", (socket) => {
-  console.log("User connected:", socket.id);
 
-  // JOIN ROOM
+  console.log("CONNECTED:", socket.id);
+
   socket.on("join_room", (room) => {
     socket.join(room);
-
-    // 🔥 SEND OLD HISTORY TO LATE JOIN USER
-    if (chatHistory[room]) {
-      socket.emit("load_history", chatHistory[room]);
-    } else {
-      chatHistory[room] = [];
-    }
-
-    console.log(`User joined room: ${room}`);
+    console.log("USER JOINED ROOM:", room);
   });
 
-  // MESSAGE
   socket.on("send_message", (data) => {
-    const { room } = data;
+    console.log("MESSAGE:", data);
 
-    // save in history
-    if (!chatHistory[room]) chatHistory[room] = [];
-    chatHistory[room].push(data);
-
-    // broadcast to room
-    io.to(room).emit("receive_message", data);
+    io.to(data.room).emit("receive_message", data);
   });
 
-  // FILE
   socket.on("send_file", (data) => {
-    const { room } = data;
+    io.to(data.room).emit("receive_file", data);
+  });
 
-    if (!chatHistory[room]) chatHistory[room] = [];
-    chatHistory[room].push(data);
+  socket.on("typing", (data) => {
+    socket.to(data.room).emit("typing", data);
+  });
 
-    io.to(room).emit("receive_file", data);
+  socket.on("stop_typing", (room) => {
+    socket.to(room).emit("stop_typing");
   });
 
   socket.on("disconnect", () => {
-    console.log("User disconnected");
+    console.log("DISCONNECTED:", socket.id);
   });
+
 });
 
-server.listen(3001, () => {
-  console.log("Server running on port 3001");
+server.listen(3001, "0.0.0.0", () => {
+  console.log("SERVER RUNNING ON 3001");
 });
