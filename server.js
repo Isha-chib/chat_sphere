@@ -1,83 +1,90 @@
 const express = require("express");
 const http = require("http");
-const cors = require("cors");
 const { Server } = require("socket.io");
+const path = require("path");
 
 const app = express();
 
-// ✅ FIXED CORS
-const allowedOrigins = [
-  "http://localhost:3000",
-  "https://awesome-reconstructively-phyllis.ngrok-free.dev"
-];
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
-    res.header("Access-Control-Allow-Origin", origin);
-  }
-  res.header("Access-Control-Allow-Credentials", "true");
-  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
-  }
-  next();
-});
-
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true,
-}));
-
-app.get("/", (req, res) => {
-  res.send("SERVER RUNNING");
-});
-
+// CREATE SERVER
 const server = http.createServer(app);
 
-// ✅ FIX SOCKET.IO CONFIG (IMPORTANT FIX)
+// SOCKET.IO
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
-    credentials: true,
+    origin: "*",
+    methods: ["GET", "POST"],
   },
-  transports: ["polling", "websocket"],
 });
 
-// SOCKET LOGIC (UNCHANGED FIXED ONLY CLEANED)
+// SOCKET CONNECTION
 io.on("connection", (socket) => {
 
-  console.log("CONNECTED:", socket.id);
+  console.log("✅ USER CONNECTED:", socket.id);
 
+  // JOIN ROOM
   socket.on("join_room", (room) => {
+
     socket.join(room);
-    console.log("USER JOINED ROOM:", room);
+
+    console.log(`🚪 User joined room: ${room}`);
+
   });
 
+  // SEND MESSAGE
   socket.on("send_message", (data) => {
-    console.log("MESSAGE:", data);
+
+    console.log("📤 MESSAGE:", data);
 
     io.to(data.room).emit("receive_message", data);
+
   });
 
+  // SEND FILE
   socket.on("send_file", (data) => {
+
+    console.log("📁 FILE:", data);
+
     io.to(data.room).emit("receive_file", data);
+
   });
 
+  // TYPING
   socket.on("typing", (data) => {
+
     socket.to(data.room).emit("typing", data);
+
   });
 
+  // STOP TYPING
   socket.on("stop_typing", (room) => {
+
     socket.to(room).emit("stop_typing");
+
   });
 
+  // DISCONNECT
   socket.on("disconnect", () => {
-    console.log("DISCONNECTED:", socket.id);
+
+    console.log("❌ USER DISCONNECTED");
+
   });
 
 });
 
+const buildPath = path.resolve(__dirname, "client", "build");
+
+app.use(express.static(buildPath));
+
+app.use((req, res) => {
+
+  res.sendFile(path.join(buildPath, "index.html"));
+
+});
+
+console.log(__dirname);
+// START SERVER
 server.listen(3001, "0.0.0.0", () => {
-  console.log("SERVER RUNNING ON 3001");
+
+  console.log("🚀 SERVER RUNNING ON PORT 3001");
+
 });
